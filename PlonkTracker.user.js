@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Plonk Tracker
-// @namespace    https://flatypus.me, https://github.com/flatypus
+// @namespace    https://flatypus.me, https://github.com/flatypus/PlonkTracker
 // @version      2024-12-16
 // @description  Tracks your guesses on Geoguessr to identify hotspots and blindspots
 // @author       Hinson Chan
