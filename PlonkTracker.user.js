@@ -57,9 +57,10 @@ const refresh = async (access_token, refresh_token, api_key) =>
     await GM.setValue("PLONKTRACKER_ACCESS_TOKEN", newData.access_token);
     await GM.setValue("PLONKTRACKER_REFRESH_TOKEN", newData.refresh_token);
     await GM.setValue("PLONKTRACKER_EXPIRES_AT", newData.expires_at);
-    await GM.setValue("PLONKTRACKER_ANON_KEY", anon_key);
+
     localStorage.setItem("supabase.auth.access_token", newData.access_token);
     localStorage.setItem("supabase.auth.refresh_token", newData.refresh_token);
+    localStorage.setItem("supabase.auth.expires_at", newData.expires_at);
   };
 
   const verifyUser = async (
@@ -83,7 +84,7 @@ const refresh = async (access_token, refresh_token, api_key) =>
       if (success) {
         return { success: true };
       } else {
-        if (reason === "token expired") {
+        if (reason === "token expired" || reason == "invalid token") {
           try {
             await refreshToken(access_token, refresh_token, anon_key);
             return { success: true };
@@ -106,6 +107,8 @@ const refresh = async (access_token, refresh_token, api_key) =>
       async () => document.querySelector("#PLONKTRACKER_TRACKING_ID"),
       async (span) => {
         const anon_key = localStorage.getItem("supabase.auth.anon_key");
+        await GM.setValue("PLONKTRACKER_ANON_KEY", anon_key);
+
         const access_token = localStorage.getItem("supabase.auth.access_token");
         const refresh_token = localStorage.getItem(
           "supabase.auth.refresh_token",
