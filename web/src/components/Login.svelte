@@ -3,6 +3,7 @@
 	import { supabase } from '../lib/client';
 
 	async function signInWithDiscord() {
+		localStorage.clear();
 		try {
 			const { data, error } = await supabase.auth.signInWithOAuth({
 				provider: 'discord',

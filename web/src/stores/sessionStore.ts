@@ -1,5 +1,6 @@
-import { writable } from 'svelte/store';
 import { supabase } from '../lib/client';
+import { SUPABASE_ANON_KEY } from '../lib/constants';
+import { writable } from 'svelte/store';
 import type { Session } from '@supabase/supabase-js';
 
 export const session = writable<Session | null>(null);
@@ -15,8 +16,10 @@ export async function fetchSession() {
 	} else if (sessionData) {
 		ready.set(true);
 		session.set(sessionData);
-		localStorage.setItem('supabase.auth.token', sessionData.access_token);
-		localStorage.setItem('supabase.auth.expires_at', sessionData.refresh_token);
+		localStorage.setItem('supabase.auth.access_token', sessionData.access_token);
+		localStorage.setItem('supabase.auth.refresh_token', sessionData.refresh_token);
+		localStorage.setItem('supabase.auth.anon_key', SUPABASE_ANON_KEY);
+		localStorage.setItem('supabase.auth.expires_at', sessionData.expires_at?.toString() || '');
 	} else {
 		ready.set(false);
 	}

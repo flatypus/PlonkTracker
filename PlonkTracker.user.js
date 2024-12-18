@@ -12,42 +12,161 @@
 // @grant       GM.setValue
 // ==/UserScript==
 
-const waitUntilLoaded = async (fn) => {
-  const repeat = setInterval(() => {
-    const complete = fn();
-    if (complete) clearInterval(repeat);
+// 30 minutes
+const REFRESH = 1000 * 60 * 30;
+
+const waitUntilLoaded = async (fn, callback) => {
+  const repeat = setInterval(async () => {
+    const complete = await fn();
+    if (complete) {
+      clearInterval(repeat);
+      callback(complete);
+    }
   }, 100);
 };
+
+const refresh = async (access_token, refresh_token, api_key) =>
+  fetch(
+    "https://pgqxivpgjzkikcxldpjv.supabase.co/auth/v1/token?grant_type=refresh_token",
+    {
+      headers: {
+        apikey: api_key,
+        authorization: `Bearer ${access_token}`,
+      },
+      body: `{"refresh_token":"${refresh_token}"}`,
+      method: "POST",
+      mode: "cors",
+    },
+  );
 
 (async function () {
   "use strict";
 
-  console.log("<<<Plonk Tracker v0.1, by Hinson Chan>>>");
+  console.log("<<< Plonk Tracker v0.1, by Hinson Chan >>>");
+
+  const refreshToken = async (access_token, refresh_token, anon_key) => {
+    let refreshResponse;
+    try {
+      refreshResponse = await refresh(access_token, refresh_token, anon_key);
+    } catch (e) {
+      refreshResponse = await refresh(gmAT, gmRT, gmAK);
+    }
+
+    const newData = await refreshResponse.json();
+    if (!newData?.access_token || !newData?.refresh_token) return;
+    await GM.setValue("PLONKTRACKER_ACCESS_TOKEN", newData.access_token);
+    await GM.setValue("PLONKTRACKER_REFRESH_TOKEN", newData.refresh_token);
+    await GM.setValue("PLONKTRACKER_EXPIRES_AT", newData.expires_at);
+    await GM.setValue("PLONKTRACKER_ANON_KEY", anon_key);
+    localStorage.setItem("supabase.auth.access_token", newData.access_token);
+    localStorage.setItem("supabase.auth.refresh_token", newData.refresh_token);
+  };
+
+  const verifyUser = async (
+    access_token = null,
+    refresh_token = null,
+    anon_key = null,
+  ) => {
+    const gmAT = await GM.getValue("PLONKTRACKER_ACCESS_TOKEN", null);
+    const gmRT = await GM.getValue("PLONKTRACKER_REFRESH_TOKEN", null);
+    const gmAK = await GM.getValue("PLONKTRACKER_ANON_KEY", null);
+
+    if (!access_token) access_token = gmAT;
+    if (!refresh_token) refresh_token = gmRT;
+    if (!anon_key) anon_key = gmAK;
+
+    try {
+      const response = await fetch(
+        `https://api.plonk.flatypus.me/verify?access_token=${access_token}`,
+      );
+      const { success, reason } = await response.json();
+      if (success) {
+        return { success: true };
+      } else {
+        if (reason === "token expired") {
+          try {
+            await refreshToken(access_token, refresh_token, anon_key);
+            return { success: true };
+          } catch (e) {
+            return { success: false, reason: e.message };
+          }
+        } else {
+          return { success: false, reason };
+        }
+      }
+    } catch (e) {
+      return { success: false, reason: e.message };
+    }
+  };
+
   // #region SETUP FOR MY PERSONAL WEBSITE
   const personalSetup = async () => {
     // Verify on my page that the user is ready
-    const verifyUser = () => {
-      const span = document.querySelector("#PLONKTRACKER_TRACKING_ID");
-      if (!span) return false;
-      console.log("Script is ready!");
-      span.style.color = "#00ff00";
-      span.innerText = "SCRIPT IS TRACKING";
-      return true;
-    };
+    await waitUntilLoaded(
+      async () => document.querySelector("#PLONKTRACKER_TRACKING_ID"),
+      async (span) => {
+        const anon_key = localStorage.getItem("supabase.auth.anon_key");
+        const access_token = localStorage.getItem("supabase.auth.access_token");
+        const refresh_token = localStorage.getItem(
+          "supabase.auth.refresh_token",
+        );
+        const expires_at = parseFloat(
+          localStorage.getItem("supabase.auth.expires_at") ?? 0,
+        );
 
-    // Grab the access token
-    waitUntilLoaded(verifyUser);
+        const gmAT = await GM.getValue("PLONKTRACKER_ACCESS_TOKEN", null);
+        const gmRT = await GM.getValue("PLONKTRACKER_REFRESH_TOKEN", null);
+        const gmEA = parseFloat(
+          (await GM.getValue("PLONKTRACKER_EXPIRES_AT", 0)) ?? 0,
+        );
+
+        if (!gmEA || expires_at > gmEA) {
+          await GM.setValue("PLONKTRACKER_ACCESS_TOKEN", access_token);
+          await GM.setValue("PLONKTRACKER_REFRESH_TOKEN", refresh_token);
+          await GM.setValue("PLONKTRACKER_EXPIRES_AT", expires_at);
+        } else if (expires_at < gmEA) {
+          localStorage.setItem("supabase.auth.access_token", gmAT);
+          localStorage.setItem("supabase.auth.refresh_token", gmRT);
+          localStorage.setItem("supabase.auth.expires_at", gmEA);
+        }
+
+        const { success, reason } = await verifyUser(
+          access_token,
+          refresh_token,
+          anon_key,
+        );
+
+        if (!success) {
+          span.style.color = "#ff0000";
+          span.innerText = `SCRIPT NOT READY: ${reason.toUpperCase()} TRY SIGNING OUT AND SIGNING IN.`;
+        } else {
+          span.style.color = "#00ff00";
+          span.innerText = "SCRIPT IS TRACKING";
+        }
+      },
+    );
   };
   // #endregion
 
   // #region SETUP FOR GEOGUESSR.COM
   const geoguessrSetup = async () => {
-    const access_token = await GM.getValue("PLONKTRACKER_ACCESS_TOKEN", null);
-    const refresh_token = await GM.getValue("PLONKTRACKER_REFRESH_TOKEN", null);
+    const geoguessrRefresh = async () => {
+      const { success } = await verifyUser();
 
-    if (!access_token || !refresh_token) {
+      const style = document.createElement("style");
+      style.innerHTML = `
+        .plonk-banner { 
+          animation: fadeOut 3s forwards; 
+        } 
+        @keyframes fadeOut {
+          0% { opacity: 1; }
+          50% { opacity: 1; }
+          100% { opacity: 0; }
+        }
+      `;
+      document.head.appendChild(style);
+
       const banner = document.createElement("button");
-
       banner.style.position = "absolute";
       banner.style.width = "calc(100vw - 20px)";
       banner.style.margin = "10px";
@@ -62,20 +181,29 @@ const waitUntilLoaded = async (fn) => {
       banner.style.cursor = "pointer";
       banner.style.boxShadow = "0 0 10px rgba(0, 0, 0, 0.2)";
 
-      const text = document.createElement("span");
-      text.innerText = "PlonkTracker is not tracking. ";
-      const bold = document.createElement("b");
-      bold.innerText = "Click here to setup!";
+      if (!success) {
+        const text = document.createElement("span");
+        text.innerText = "PlonkTracker is not tracking. ";
+        const bold = document.createElement("b");
+        bold.innerText = "Click here to setup!";
+        banner.appendChild(text);
+        banner.appendChild(bold);
+      } else {
+        const text = document.createElement("span");
+        text.innerText = "PlonkTracker is tracking!";
+        banner.classList.add("plonk-banner");
+        banner.appendChild(text);
+      }
 
       banner.onclick = () => {
         window.location.href = "https://plonk.flatypus.me";
       };
 
-      banner.appendChild(text);
-      banner.appendChild(bold);
       document.body.appendChild(banner);
-      console.log("Plonk Tracker is not setup.", banner);
-    }
+    };
+
+    geoguessrRefresh();
+    setInterval(geoguessrRefresh, REFRESH);
 
     // Setup the observer
     const originalFetch = window.fetch;
