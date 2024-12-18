@@ -7,7 +7,7 @@
 			const { data, error } = await supabase.auth.signInWithOAuth({
 				provider: 'discord',
 				options: {
-					redirectTo: process?.env?.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:5173/'
+					redirectTo: import.meta.env?.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:5173/'
 				}
 			});
 
