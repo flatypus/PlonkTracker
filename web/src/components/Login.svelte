@@ -3,13 +3,11 @@
 	import { supabase } from '../lib/client';
 
 	async function signInWithDiscord() {
-		console.log(import.meta.env)
-		return
 		try {
 			const { data, error } = await supabase.auth.signInWithOAuth({
 				provider: 'discord',
 				options: {
-					redirectTo: import.meta.env?.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:5173/'
+					redirectTo: import.meta.env?.VITE_VERCEL_PROJECT_PRODUCTION_URL ?? 'http://localhost:5173/'
 				}
 			});
 
