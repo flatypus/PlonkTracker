@@ -2,10 +2,13 @@
 	import MdiDiscord from '~icons/mdi/discord';
 	import { supabase } from '../lib/client';
 
+	const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
 	async function signInWithDiscord() {
 		try {
 			const { data, error } = await supabase.auth.signInWithOAuth({
-				provider: 'discord'
+				provider: 'discord',
+				options: { redirectTo: IS_PRODUCTION ? 'https://plonk.flatypus.me' : '/' }
 			});
 
 			if (error) {
@@ -21,20 +24,20 @@
 </script>
 
 <div class="flex w-1/2 min-w-[600px] flex-col gap-6 text-white">
-    <h1 class="text-3xl">Welcome to PlonkTracker!</h1>
-    <h2 class="text-lg">
-        Please sign in; I'm storing thousands of data points for people with multiple devices, and I
-        hope this is the simplest way I can help you keep track of it all.
-    </h2>
-    <h2 class="text-base text-slate-300">
-        If you have suggestions for other sign-in methods, or other features in general, let me know
-        at hinson (at) stanford (dot) edu
-    </h2>
-    <button
-        onclick={signInWithDiscord}
-        class="flex items-center justify-center gap-2 rounded-lg bg-[#7289da] px-6 py-3 text-white transition hover:scale-105"
-    >
-        <MdiDiscord class="h-6 w-6" />
-        Sign in with Discord
-    </button>
+	<h1 class="text-3xl">Welcome to PlonkTracker!</h1>
+	<h2 class="text-lg">
+		Please sign in; I'm storing thousands of data points for people with multiple devices, and I
+		hope this is the simplest way I can help you keep track of it all.
+	</h2>
+	<h2 class="text-base text-slate-300">
+		If you have suggestions for other sign-in methods, or other features in general, let me know at
+		hinson (at) stanford (dot) edu
+	</h2>
+	<button
+		onclick={signInWithDiscord}
+		class="flex items-center justify-center gap-2 rounded-lg bg-[#7289da] px-6 py-3 text-white transition hover:scale-105"
+	>
+		<MdiDiscord class="h-6 w-6" />
+		Sign in with Discord
+	</button>
 </div>
