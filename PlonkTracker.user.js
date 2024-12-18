@@ -15,12 +15,11 @@
 
   console.log("<<<Plonk Tracker v0.1, by Hinson Chan>>>");
 
-  // Save the original fetch function
   const originalFetch = window.fetch;
 
-  // Override the fetch function
   window.fetch = async function (...args) {
     const [resource, config] = args;
+    console.log(args);
     let modify = false;
 
     if (/geoguessr\.com\/api\/v3\/games\/[A-Z0-9]/.test(resource)) {
@@ -30,7 +29,9 @@
     const response = await originalFetch(...args);
 
     if (modify) {
-      console.log("Fetch response:", response);
+      const data = await response.json();
+      console.log("Fetch data:", data);
+      console.log("Fetch config:", config);
     }
     return response;
   };

@@ -1,0 +1,11 @@
+{
+  "name": "tag-across-the-world",
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "scripts": {
+    "dev": "concurrently \"cd web && bun run dev\" \"cd api && bun run dev\"",
+    "install": "concurrently \"cd web && bun i\" \"cd api && bun i\"",
+    "i": "bun install"
+  }
+}
