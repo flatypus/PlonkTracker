@@ -1,5 +1,4 @@
 <script>
-	// @ts-ignore
 	import MdiDiscord from '~icons/mdi/discord';
 	import { supabase } from '../lib/client';
 

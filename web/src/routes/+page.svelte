@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { fetchSession, session, ready } from '../stores/sessionStore';
+	import { fetchSession, ready } from '../stores/sessionStore';
 	import Dashboard from '../components/Dashboard.svelte';
 	import Loading from '../components/Loading.svelte';
 	import Login from '../components/Login.svelte';
