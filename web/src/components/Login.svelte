@@ -2,13 +2,13 @@
 	import MdiDiscord from '~icons/mdi/discord';
 	import { supabase } from '../lib/client';
 
-	const IS_PRODUCTION = process.env.NODE_ENV === 'production';
-
 	async function signInWithDiscord() {
 		try {
 			const { data, error } = await supabase.auth.signInWithOAuth({
 				provider: 'discord',
-				options: { redirectTo: IS_PRODUCTION ? 'https://plonk.flatypus.me' : '/' }
+				options: {
+					redirectTo: process?.env?.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:5173/'
+				}
 			});
 
 			if (error) {
