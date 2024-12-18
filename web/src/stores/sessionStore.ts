@@ -20,5 +20,4 @@ export async function fetchSession() {
 	} else {
 		ready.set(false);
 	}
-	console.log(sessionData);
 }

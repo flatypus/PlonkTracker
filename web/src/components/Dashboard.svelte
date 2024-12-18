@@ -28,7 +28,7 @@
         The below indicator will show if the script is working or not. Make sure you've enabled it in Tampermonkey!
     </b>
     <h1>
-        Tracking: <span id="TRACKING_ID" style="color: red;">NOT TRACKING</span>
+        Tracking: <span id="PLONKTRACKER_TRACKING_ID" style="color: red;">NOT TRACKING</span>
     </h1>
 
 
