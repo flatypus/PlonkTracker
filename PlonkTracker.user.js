@@ -16,7 +16,7 @@
 // @copyright    2024, Hinson Chan (https://github.com/flatypus)
 // ==/UserScript==
 
-const VERSION = 0.12;
+const VERSION = 0.2;
 console.log(`<<< Plonk Tracker v${VERSION}, by Hinson Chan >>>`);
 
 const REFRESH = 1000 * 60 * 30;
@@ -51,8 +51,15 @@ const refresh = async (access_token, refresh_token, api_key) =>
 const verifyReq = async (access_token) =>
   fetch(`${BACKEND_URL}/verify?access_token=${access_token}`);
 
+// Send round info to the backend
+const post_round = async (access_token, round) =>
+  fetch(`${BACKEND_URL}/round?access_token=${access_token}`, {
+    body: JSON.stringify(round),
+    method: "POST",
+  });
+
 // Send a guess to the backend
-const guess = async (access_token, guess) =>
+const post_guess = async (access_token, guess) =>
   fetch(`${BACKEND_URL}/guess?access_token=${access_token}`, {
     body: JSON.stringify(guess),
     method: "POST",
@@ -247,21 +254,84 @@ const geoguessrSetup = async () => {
   setInterval(geoguessrRefresh, REFRESH);
 
   GeoGuessrEventFramework.init().then((GEF) => {
-    GEF.events.addEventListener("round_end", async (event) => {
-      const { current_game_id, current_round, map, rounds } = event.detail;
+    GEF.events.addEventListener("round_start", async (event) => {
+      // Access all the info about the round/player that do not depend on the guess
+      const { current_game_id, current_round, map } = event.detail;
       const { id: map_id, name: map_name } = map;
-      const last_round = rounds.at(-1);
-      if (!last_round) return;
-      const { distance, location, player_guess, score, time } = last_round;
-      const { lat: real_lat, lng: real_lng, panoId } = location;
-      const { lat: guess_lat, lng: guess_lng } = player_guess;
       const request = await getGameInfo(current_game_id);
       const game_info = await request.json();
-      const realCountryResponse = await getCountryCode([real_lat, real_lng]);
-      const realCountryCode = await realCountryResponse.json();
-      const guessCountryResponse = await getCountryCode([guess_lat, guess_lng]);
-      const guessCountryCode = await guessCountryResponse.json();
-      console.log(realCountryCode, guessCountryCode);
+
+      const {
+        forbidMoving,
+        forbidRotating,
+        forbidZooming,
+        mode,
+        player,
+        rounds,
+        timeLimit,
+      } = game_info;
+
+      const location = rounds.at(-1);
+      if (!location) return;
+
+      const { lat, lng, panoId } = location;
+      const country_code = await getCountryCode([lat, lng]);
+
+      const { countryCode, id, isVerified, nick, pin } = player;
+      const { pin_url } = pin;
+
+      const view_limitation = forbidMoving
+        ? forbidRotating && forbidZooming
+          ? "nmpz"
+          : "nm"
+        : "m";
+
+      const gmAT = await GM.getValue("PLONKTRACKER_ACCESS_TOKEN", null);
+      await post_round(gmAT, {
+        round: {
+          game_id: current_game_id,
+          round_num: current_round,
+          map_name: map_name,
+          map_id: map_id,
+          actual_lat: lat,
+          actual_lng: lng,
+          actual_country: country_code,
+          pano_id: panoId,
+          game_mode: mode === "standard" ? "practice" : "duel",
+          time_allowed: timeLimit,
+          view_limitation: view_limitation,
+        },
+        player: {
+          player_id: id,
+          name: nick,
+          pin_url: pin_url,
+          country: countryCode,
+          verified: isVerified,
+        },
+      });
+    });
+
+    GEF.events.addEventListener("round_end", async (event) => {
+      // Access all the info that are guess dependent
+      const { current_game_id, current_round, rounds } = event.detail;
+      const last_round = rounds.at(-1);
+      if (!last_round) return;
+      const { distance, player_guess, score, time } = last_round;
+      const km = distance.meters.amount;
+      const { lat: guess_lat, lng: guess_lng } = player_guess;
+      const guessCountryCode = await getCountryCode([guess_lat, guess_lng]);
+
+      const gmAT = await GM.getValue("PLONKTRACKER_ACCESS_TOKEN", null);
+      await post_guess(gmAT, {
+        game_id: current_game_id,
+        guess_lat: guess_lat,
+        guess_lng: guess_lng,
+        guess_country: guessCountryCode,
+        round_num: current_round,
+        time_spent: time,
+        distance: km,
+        score: score,
+      });
     });
   });
 };
