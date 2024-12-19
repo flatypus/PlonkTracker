@@ -89,7 +89,7 @@ const refreshToken = async (access_token, refresh_token, anon_key) => {
   }
 
   const newData = await refreshResponse.json();
-  if (!newData?.access_token || !newData?.refresh_token) return;
+  if (!newData?.access_token || !newData?.refresh_token) return false;
   await GM.setValue("PLONKTRACKER_ACCESS_TOKEN", newData.access_token);
   await GM.setValue("PLONKTRACKER_REFRESH_TOKEN", newData.refresh_token);
   await GM.setValue("PLONKTRACKER_EXPIRES_AT", newData.expires_at);
@@ -97,6 +97,7 @@ const refreshToken = async (access_token, refresh_token, anon_key) => {
   localStorage.setItem("supabase.auth.access_token", newData.access_token);
   localStorage.setItem("supabase.auth.refresh_token", newData.refresh_token);
   localStorage.setItem("supabase.auth.expires_at", newData.expires_at);
+  return true;
 };
 
 // Verify the user's credentials
@@ -121,8 +122,16 @@ const verifyUser = async (
     } else {
       if (reason === "token expired" || reason == "invalid token") {
         try {
-          await refreshToken(access_token, refresh_token, anon_key);
-          return { success: true };
+          const isTokenRefreshed = await refreshToken(
+            access_token,
+            refresh_token,
+            anon_key,
+          );
+          if (isTokenRefreshed) {
+            return { success: isTokenRefreshed };
+          } else {
+            return { success: false, reason: "refresh failed" };
+          }
         } catch (e) {
           return { success: false, reason: e.message };
         }
