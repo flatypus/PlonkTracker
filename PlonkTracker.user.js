@@ -8,10 +8,11 @@
 // @match        https://*.flatypus.me/*
 // @match        http://localhost:*/*
 // @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
-// @grant       GM.getValue
-// @grant       GM.setValue
+// @grant        GM.getValue
+// @grant        GM.setValue
 // @run-at       document-start
 // @require      https://miraclewhips.dev/geoguessr-event-framework/geoguessr-event-framework.min.js?v=10
+// @require      https://raw.githubusercontent.com/flatypus/PlonkTracker/refs/heads/master/lib.js
 // @copyright    2024, Hinson Chan (https://github.com/flatypus)
 // ==/UserScript==
 
@@ -252,9 +253,15 @@ const geoguessrSetup = async () => {
       const last_round = rounds.at(-1);
       if (!last_round) return;
       const { distance, location, player_guess, score, time } = last_round;
+      const { lat: real_lat, lng: real_lng, panoId } = location;
+      const { lat: guess_lat, lng: guess_lng } = player_guess;
       const request = await getGameInfo(current_game_id);
-      const gameInfo = await request.json();
-      console.log(gameInfo);
+      const game_info = await request.json();
+      const realCountryResponse = await getCountryCode([real_lat, real_lng]);
+      const realCountryCode = await realCountryResponse.json();
+      const guessCountryResponse = await getCountryCode([guess_lat, guess_lng]);
+      const guessCountryCode = await guessCountryResponse.json();
+      console.log(realCountryCode, guessCountryCode);
     });
   });
 };

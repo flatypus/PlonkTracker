@@ -80,7 +80,7 @@ function checkGuessCountryCode(out) {
 }
 
 // Get the guess country code from location coordinates
-async function getGuessCountryCode(location) {
+async function getCountryCode(location) {
   if (location[0] <= -85.05 || !location) {
     return "AQ";
   } else {
