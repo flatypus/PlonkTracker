@@ -232,7 +232,8 @@ const geoguessrSetup = async () => {
 
     if (!success) {
       const text = document.createElement("span");
-      text.innerText = "PlonkTracker is not tracking.";
+      text.innerText = "PlonkTracker is NOT tracking!!";
+      text.style.color = "#ff3333";
       const bold = document.createElement("b");
       bold.innerText = "Click here to setup!";
       banner.appendChild(text);
@@ -240,6 +241,7 @@ const geoguessrSetup = async () => {
     } else {
       const text = document.createElement("span");
       text.innerText = "PlonkTracker is tracking!";
+      text.style.color = "#00ff00";
       banner.classList.add("plonk-banner");
       banner.appendChild(text);
     }
