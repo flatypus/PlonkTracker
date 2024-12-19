@@ -15,12 +15,13 @@
 // @copyright    2024, Hinson Chan (https://github.com/flatypus)
 // ==/UserScript==
 
-const VERSION = 0.11;
+const VERSION = 0.12;
 console.log(`<<< Plonk Tracker v${VERSION}, by Hinson Chan >>>`);
 
 const REFRESH = 1000 * 60 * 30;
 const SUPABASE_URL = "https://pgqxivpgjzkikcxldpjv.supabase.co";
 const BACKEND_URL = "https://api.plonk.flatypus.me";
+const SCRIPT_UPDATE_URL = "https://github.com/flatypus/PlonkTracker"; // update this l8r
 
 // Wait for a condition to be true before executing the callback function
 const waitUntilLoaded = async (fn, callback) => {
@@ -58,6 +59,15 @@ const guess = async (access_token, guess) =>
 
 // Get round info
 const getGameInfo = async (game_id) => fetch(`/api/v3/games/${game_id}`);
+
+// Script has update
+const hasUpdate = async () => {
+  const request = await fetch(
+    "https://raw.githubusercontent.com/flatypus/PlonkTracker/refs/heads/master/VERSION.txt",
+  );
+  const latestVersionNum = parseFloat(await request.text());
+  return latestVersionNum > VERSION;
+};
 
 // Refresh the token if expired
 const refreshToken = async (access_token, refresh_token, anon_key) => {
@@ -166,6 +176,7 @@ const personalSetup = async () => {
 const geoguessrSetup = async () => {
   const geoguessrRefresh = async () => {
     const { success } = await verifyUser();
+    const update = await hasUpdate();
 
     const style = document.createElement("style");
     style.innerHTML = `
@@ -194,10 +205,15 @@ const geoguessrSetup = async () => {
     banner.style.zIndex = "9999";
     banner.style.cursor = "pointer";
     banner.style.boxShadow = "0 0 10px rgba(0, 0, 0, 0.2)";
+    banner.style.display = "flex";
+    banner.style.flexDirection = "row";
+    banner.style.justifyContent = "center";
+    banner.style.alignItems = "center";
+    banner.style.gap = "5px";
 
     if (!success) {
       const text = document.createElement("span");
-      text.innerText = "PlonkTracker is not tracking. ";
+      text.innerText = "PlonkTracker is not tracking.";
       const bold = document.createElement("b");
       bold.innerText = "Click here to setup!";
       banner.appendChild(text);
@@ -209,9 +225,18 @@ const geoguessrSetup = async () => {
       banner.appendChild(text);
     }
 
-    banner.onclick = () => {
-      window.location.href = "https://plonk.flatypus.me";
+    const boldUpdate = document.createElement("b");
+    boldUpdate.innerText = update
+      ? "(Update Available! Click here to update)"
+      : "(You are on the latest version!)";
+    boldUpdate.style.color = update ? "#ff3333" : "#00ff00";
+    boldUpdate.onclick = (event) => {
+      event.stopPropagation();
+      window.location.href = SCRIPT_UPDATE_URL;
     };
+
+    banner.appendChild(boldUpdate);
+    banner.onclick = () => (window.location.href = "https://plonk.flatypus.me");
 
     document.body.appendChild(banner);
     setTimeout(() => document.body.removeChild(banner), 3000);
