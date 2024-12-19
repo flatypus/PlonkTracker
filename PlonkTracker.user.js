@@ -16,7 +16,7 @@
 // @copyright    2024, Hinson Chan (https://github.com/flatypus)
 // ==/UserScript==
 
-const VERSION = 0.2;
+const VERSION = 0.21;
 console.log(`<<< Plonk Tracker v${VERSION}, by Hinson Chan >>>`);
 
 const REFRESH = 1000 * 60 * 30;
@@ -70,8 +70,10 @@ const getGameInfo = async (game_id) => fetch(`/api/v3/games/${game_id}`);
 
 // Script has update
 const hasUpdate = async () => {
+  const time = new Date().getTime();
   const request = await fetch(
-    "https://raw.githubusercontent.com/flatypus/PlonkTracker/refs/heads/master/VERSION.txt",
+    `https://raw.githubusercontent.com/flatypus/PlonkTracker/refs/heads/master/VERSION.txt?_=${time}`,
+    { cache: "no-store" },
   );
   const latestVersionNum = parseFloat(await request.text());
   return latestVersionNum > VERSION;
