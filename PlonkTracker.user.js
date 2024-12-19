@@ -252,7 +252,8 @@ const geoguessrSetup = async () => {
       const last_round = rounds.at(-1);
       if (!last_round) return;
       const { distance, location, player_guess, score, time } = last_round;
-      const gameInfo = await getGameInfo(current_game_id);
+      const request = await getGameInfo(current_game_id);
+      const gameInfo = await request.json();
       console.log(gameInfo);
     });
   });
