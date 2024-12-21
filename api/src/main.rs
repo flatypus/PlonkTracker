@@ -1,7 +1,9 @@
+mod new_middleware;
 mod postgres;
 mod routes;
 
 use crate::postgres::AppState;
+use axum::middleware::{self};
 use axum::{http::Method, Router};
 use sqlx::postgres::PgPoolOptions;
 use tower_http::cors::{Any, CorsLayer};
@@ -23,15 +25,37 @@ async fn main() {
 
     println!("Connected to database");
 
+    // let origins = [
+    //     "http://localhost:5173",
+    //     "https://geoguessr.com",
+    //     "https://www.geoguessr.com",
+    //     "https://plonk.flatypus.me",
+    //     "https://www.plonktracker.vercel.app",
+    //     "https://plonktracker.vercel.app",
+    // ]
+    // .iter()
+    // .map(|&origin| origin.parse().unwrap())
+    // .collect::<Vec<_>>();
+
     let cors = CorsLayer::new()
+        .allow_headers(Any)
         .allow_methods([Method::GET, Method::POST])
         .allow_origin(Any);
 
-    let app = Router::new()
+    let state = AppState::new(pool, jwt_secret);
+
+    let secure_router = Router::new()
         .merge(routes::verify::routes())
-        .with_state(AppState::new(pool, jwt_secret))
+        .with_state(state.clone())
+        .route_layer(middleware::from_fn_with_state(
+            state.clone(),
+            new_middleware::auth,
+        ));
+
+    let app = Router::new()
         .merge(routes::root::routes())
         .merge(routes::health::routes())
+        .merge(secure_router)
         .layer(cors);
 
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", PORT))

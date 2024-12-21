@@ -21,7 +21,8 @@ console.log(`<<< Plonk Tracker v${VERSION}, by Hinson Chan >>>`);
 
 const REFRESH = 1000 * 60 * 30;
 const SUPABASE_URL = "https://pgqxivpgjzkikcxldpjv.supabase.co";
-const BACKEND_URL = "https://api.plonk.flatypus.me";
+// const BACKEND_URL = "https://api.plonk.flatypus.me";
+const BACKEND_URL = "http://localhost:4000";
 const SCRIPT_UPDATE_URL = "https://github.com/flatypus/PlonkTracker"; // update this l8r
 
 // Wait for a condition to be true before executing the callback function
@@ -36,8 +37,8 @@ const waitUntilLoaded = async (fn, callback) => {
 };
 
 // Refresh access token
-const refresh = async (access_token, refresh_token, api_key) =>
-  fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+const refresh = async (access_token, refresh_token, api_key) => {
+  const response = fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
     headers: {
       apikey: api_key,
       authorization: `Bearer ${access_token}`,
@@ -45,25 +46,52 @@ const refresh = async (access_token, refresh_token, api_key) =>
     body: JSON.stringify({ refresh_token }),
     method: "POST",
     mode: "cors",
-  });
+  }); // save the response to a variable so that we can use it
+
+  const new_AT = await response.headers.get("authorization").split("Bearer ")[1];
+
+  // response is of type Response, response.headers returns a Header
+  // headers.get("Authorization") returns a string representing everything under "Authorization"
+  // .split should just manipulate the string for us to use
+
+  if (new_AT) {
+    console.log("New Access Token: ", new_AT);
+    await GM.setValue("PLONKTRACKER_ACCESS_TOKEN", new_AT);
+    // wait for greasemonkey to change the access token to the new access token
+  }
+};
+
+const authFetch = async ({ access_token, path, method, body }) => {
+  const at = access_token ?? await GM.getValue("PLONKTRACKER_ACCESS_TOKEN", null);
+  return fetch(`${BACKEND_URL}/${path}`, {
+    headers: {
+      "Authorization": `Bearer ${at}`,
+    },
+    method: method ?? "GET",
+    body: JSON.stringify(body)
+  })
+}
 
 // Verify the user's token
-const verifyReq = async (access_token) =>
-  fetch(`${BACKEND_URL}/verify?access_token=${access_token}`);
+const verifyReq = async (access_token) => authFetch({
+  access_token,
+  path: "verify",
+  method: "GET"
+})
 
 // Send round info to the backend
-const post_round = async (access_token, round) =>
-  fetch(`${BACKEND_URL}/round?access_token=${access_token}`, {
-    body: JSON.stringify(round),
-    method: "POST",
-  });
+const post_round = async (round) => authFetch({
+  path: "round",
+  body: round,
+  method: "POST"
+});
 
 // Send a guess to the backend
-const post_guess = async (access_token, guess) =>
-  fetch(`${BACKEND_URL}/guess?access_token=${access_token}`, {
-    body: JSON.stringify(guess),
-    method: "POST",
-  });
+const post_guess = async (guess) => authFetch({
+  path: "guess",
+  body: guess,
+  method: "POST",
+});
 
 // Get round info
 const getGameInfo = async (game_id) => fetch(`/api/v3/games/${game_id}`);
@@ -243,6 +271,7 @@ const geoguessrSetup = async () => {
       text.innerText = "PlonkTracker is tracking!";
       text.style.color = "#00ff00";
       banner.classList.add("plonk-banner");
+      setTimeout(() => document.body.removeChild(banner), 3000);
       banner.appendChild(text);
     }
 
@@ -253,14 +282,13 @@ const geoguessrSetup = async () => {
     boldUpdate.style.color = update ? "#ff3333" : "#00ff00";
     boldUpdate.onclick = (event) => {
       event.stopPropagation();
-      window.location.href = SCRIPT_UPDATE_URL;
+      window.open(SCRIPT_UPDATE_URL, '_blank').focus();
     };
 
     banner.appendChild(boldUpdate);
-    banner.onclick = () => (window.location.href = "https://plonk.flatypus.me");
+    banner.onclick = () => (window.open("https://plonk.flatypus.me", '_blank').focus());
 
     document.body.appendChild(banner);
-    setTimeout(() => document.body.removeChild(banner), 3000);
   };
 
   geoguessrRefresh();
@@ -299,8 +327,7 @@ const geoguessrSetup = async () => {
           : "nm"
         : "m";
 
-      const gmAT = await GM.getValue("PLONKTRACKER_ACCESS_TOKEN", null);
-      await post_round(gmAT, {
+      await post_round({
         round: {
           game_id: current_game_id,
           round_num: current_round,
@@ -334,8 +361,7 @@ const geoguessrSetup = async () => {
       const { lat: guess_lat, lng: guess_lng } = player_guess;
       const guessCountryCode = await getCountryCode([guess_lat, guess_lng]);
 
-      const gmAT = await GM.getValue("PLONKTRACKER_ACCESS_TOKEN", null);
-      await post_guess(gmAT, {
+      await post_guess({
         game_id: current_game_id,
         guess_lat: guess_lat,
         guess_lng: guess_lng,
@@ -343,7 +369,7 @@ const geoguessrSetup = async () => {
         round_num: current_round,
         time_spent: time,
         distance: km,
-        score: score,
+        score: score.amount,
       });
     });
   });
