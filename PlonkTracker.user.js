@@ -4,8 +4,8 @@
 // @version      2024-12-16
 // @description  Tracks your guesses on Geoguessr to identify hotspots and blindspots
 // @author       Hinson Chan
-// @match        https://*.geoguessr.com/*
-// @match        https://*.flatypus.me/*
+// @match        *://*.geoguessr.com/*
+// @match        *://*.flatypus.me/*
 // @match        http://localhost:*/*
 // @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
 // @grant        GM.getValue
@@ -16,7 +16,7 @@
 // @copyright    2024, Hinson Chan (https://github.com/flatypus)
 // ==/UserScript==
 
-const VERSION = 0.21;
+const VERSION = 0.22;
 console.log(`<<< Plonk Tracker v${VERSION}, by Hinson Chan >>>`);
 
 const REFRESH = 1000 * 60 * 30;
@@ -37,34 +37,16 @@ const waitUntilLoaded = async (fn, callback) => {
 };
 
 // Refresh access token
-const refresh = async (access_token, refresh_token, api_key) => {
-  const response = fetch(
-    `${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,
-    {
-      headers: {
-        apikey: api_key,
-        authorization: `Bearer ${access_token}`,
-      },
-      body: JSON.stringify({ refresh_token }),
-      method: "POST",
-      mode: "cors",
+const refresh = async (access_token, refresh_token, api_key) =>
+  fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+    headers: {
+      apikey: api_key,
+      authorization: `Bearer ${access_token}`,
     },
-  ); // save the response to a variable so that we can use it
-
-  const new_AT = await response.headers
-    .get("authorization")
-    .split("Bearer ")[1];
-
-  // response is of type Response, response.headers returns a Header
-  // headers.get("Authorization") returns a string representing everything under "Authorization"
-  // .split should just manipulate the string for us to use
-
-  if (new_AT) {
-    console.log("New Access Token: ", new_AT);
-    await GM.setValue("PLONKTRACKER_ACCESS_TOKEN", new_AT);
-    // wait for greasemonkey to change the access token to the new access token
-  }
-};
+    body: JSON.stringify({ refresh_token }),
+    method: "POST",
+    mode: "cors",
+  });
 
 const authFetch = async ({ access_token, path, method, body }) => {
   const at =
@@ -116,21 +98,35 @@ const hasUpdate = async () => {
   return latestVersionNum > VERSION;
 };
 
+const gmGet = async () => {
+  const gmAT = await GM.getValue("PLONKTRACKER_ACCESS_TOKEN", null);
+  const gmRT = await GM.getValue("PLONKTRACKER_REFRESH_TOKEN", null);
+  const gmAK = await GM.getValue("PLONKTRACKER_ANON_KEY", null);
+  const gmEA = await GM.getValue("PLONKTRACKER_EXPIRES_AT", 0);
+  return { gmAT, gmRT, gmAK, gmEA: parseFloat(gmEA ?? 0) };
+};
+
+const gmUpdate = async (access_token, refresh_token, expires_at) => {
+  await GM.setValue("PLONKTRACKER_ACCESS_TOKEN", access_token);
+  await GM.setValue("PLONKTRACKER_REFRESH_TOKEN", refresh_token);
+  await GM.setValue("PLONKTRACKER_EXPIRES_AT", expires_at);
+};
+
 // Refresh the token if expired
 const refreshToken = async (access_token, refresh_token, anon_key) => {
   let refreshResponse;
   try {
     refreshResponse = await refresh(access_token, refresh_token, anon_key);
   } catch (e) {
+    const { gmAT, gmRT, gmAK } = await gmGet();
     refreshResponse = await refresh(gmAT, gmRT, gmAK);
   }
 
   const newData = await refreshResponse.json();
   if (!newData?.access_token || !newData?.refresh_token) return false;
-  await GM.setValue("PLONKTRACKER_ACCESS_TOKEN", newData.access_token);
-  await GM.setValue("PLONKTRACKER_REFRESH_TOKEN", newData.refresh_token);
-  await GM.setValue("PLONKTRACKER_EXPIRES_AT", newData.expires_at);
+  const { access_token: nAT, refresh_token: nRT, expires_at: nEA } = newData;
 
+  await gmUpdate(nAT, nRT, nEA);
   localStorage.setItem("supabase.auth.access_token", newData.access_token);
   localStorage.setItem("supabase.auth.refresh_token", newData.refresh_token);
   localStorage.setItem("supabase.auth.expires_at", newData.expires_at);
@@ -143,9 +139,7 @@ const verifyUser = async (
   refresh_token = null,
   anon_key = null,
 ) => {
-  const gmAT = await GM.getValue("PLONKTRACKER_ACCESS_TOKEN", null);
-  const gmRT = await GM.getValue("PLONKTRACKER_REFRESH_TOKEN", null);
-  const gmAK = await GM.getValue("PLONKTRACKER_ANON_KEY", null);
+  const { gmAT, gmRT, gmAK } = await gmGet();
 
   if (!access_token) access_token = gmAT;
   if (!refresh_token) refresh_token = gmRT;
@@ -187,16 +181,9 @@ const personalSetup = async () => {
         localStorage.getItem("supabase.auth.expires_at") ?? 0,
       );
 
-      const gmAT = await GM.getValue("PLONKTRACKER_ACCESS_TOKEN", null);
-      const gmRT = await GM.getValue("PLONKTRACKER_REFRESH_TOKEN", null);
-      const gmEA = parseFloat(
-        (await GM.getValue("PLONKTRACKER_EXPIRES_AT", 0)) ?? 0,
-      );
-
+      const { gmAT, gmRT, gmEA } = await gmGet();
       if (!gmEA || expires_at > gmEA) {
-        await GM.setValue("PLONKTRACKER_ACCESS_TOKEN", access_token);
-        await GM.setValue("PLONKTRACKER_REFRESH_TOKEN", refresh_token);
-        await GM.setValue("PLONKTRACKER_EXPIRES_AT", expires_at);
+        await gmUpdate(access_token, refresh_token, expires_at);
       } else if (expires_at < gmEA) {
         localStorage.setItem("supabase.auth.access_token", gmAT);
         localStorage.setItem("supabase.auth.refresh_token", gmRT);
