@@ -38,17 +38,22 @@ const waitUntilLoaded = async (fn, callback) => {
 
 // Refresh access token
 const refresh = async (access_token, refresh_token, api_key) => {
-  const response = fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
-    headers: {
-      apikey: api_key,
-      authorization: `Bearer ${access_token}`,
+  const response = fetch(
+    `${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,
+    {
+      headers: {
+        apikey: api_key,
+        authorization: `Bearer ${access_token}`,
+      },
+      body: JSON.stringify({ refresh_token }),
+      method: "POST",
+      mode: "cors",
     },
-    body: JSON.stringify({ refresh_token }),
-    method: "POST",
-    mode: "cors",
-  }); // save the response to a variable so that we can use it
+  ); // save the response to a variable so that we can use it
 
-  const new_AT = await response.headers.get("authorization").split("Bearer ")[1];
+  const new_AT = await response.headers
+    .get("authorization")
+    .split("Bearer ")[1];
 
   // response is of type Response, response.headers returns a Header
   // headers.get("Authorization") returns a string representing everything under "Authorization"
@@ -62,36 +67,40 @@ const refresh = async (access_token, refresh_token, api_key) => {
 };
 
 const authFetch = async ({ access_token, path, method, body }) => {
-  const at = access_token ?? await GM.getValue("PLONKTRACKER_ACCESS_TOKEN", null);
+  const at =
+    access_token ?? (await GM.getValue("PLONKTRACKER_ACCESS_TOKEN", null));
   return fetch(`${BACKEND_URL}/${path}`, {
     headers: {
-      "Authorization": `Bearer ${at}`,
+      Authorization: `Bearer ${at}`,
     },
     method: method ?? "GET",
-    body: JSON.stringify(body)
-  })
-}
+    body: JSON.stringify(body),
+  });
+};
 
 // Verify the user's token
-const verifyReq = async (access_token) => authFetch({
-  access_token,
-  path: "verify",
-  method: "GET"
-})
+const verifyReq = async (access_token) =>
+  authFetch({
+    access_token,
+    path: "verify",
+    method: "GET",
+  });
 
 // Send round info to the backend
-const post_round = async (round) => authFetch({
-  path: "round",
-  body: round,
-  method: "POST"
-});
+const post_round = async (round) =>
+  authFetch({
+    path: "round",
+    body: round,
+    method: "POST",
+  });
 
 // Send a guess to the backend
-const post_guess = async (guess) => authFetch({
-  path: "guess",
-  body: guess,
-  method: "POST",
-});
+const post_guess = async (guess) =>
+  authFetch({
+    path: "guess",
+    body: guess,
+    method: "POST",
+  });
 
 // Get round info
 const getGameInfo = async (game_id) => fetch(`/api/v3/games/${game_id}`);
@@ -144,31 +153,23 @@ const verifyUser = async (
 
   try {
     const response = await verifyReq(access_token);
-    const { success, reason } = await response.json();
-    if (success) {
-      return { success: true };
-    } else {
-      if (reason === "token expired" || reason == "invalid token") {
-        try {
-          const isTokenRefreshed = await refreshToken(
-            access_token,
-            refresh_token,
-            anon_key,
-          );
-          if (isTokenRefreshed) {
-            return { success: isTokenRefreshed };
-          } else {
-            return { success: false, reason: "refresh failed" };
-          }
-        } catch (e) {
-          return { success: false, reason: e.message };
-        }
-      } else {
-        return { success: false, reason };
-      }
-    }
+    const { success } = await response.json();
+    if (success) return { success: true };
   } catch (e) {
-    return { success: false, reason: e.message };
+    try {
+      const isTokenRefreshed = await refreshToken(
+        access_token,
+        refresh_token,
+        anon_key,
+      );
+      if (isTokenRefreshed) {
+        return { success: isTokenRefreshed };
+      } else {
+        return { success: false, reason: "refresh failed" };
+      }
+    } catch (e) {
+      return { success: false, reason: "session invalid" };
+    }
   }
 };
 
@@ -282,11 +283,12 @@ const geoguessrSetup = async () => {
     boldUpdate.style.color = update ? "#ff3333" : "#00ff00";
     boldUpdate.onclick = (event) => {
       event.stopPropagation();
-      window.open(SCRIPT_UPDATE_URL, '_blank').focus();
+      window.open(SCRIPT_UPDATE_URL, "_blank").focus();
     };
 
     banner.appendChild(boldUpdate);
-    banner.onclick = () => (window.open("https://plonk.flatypus.me", '_blank').focus());
+    banner.onclick = () =>
+      window.open("https://plonk.flatypus.me", "_blank").focus();
 
     document.body.appendChild(banner);
   };
