@@ -17,12 +17,11 @@ pub async fn auth(
     let auth_header = headers
         .get("Authorization")
         .ok_or(StatusCode::UNAUTHORIZED)?;
+
     let token = auth_header
         .to_str()
         .map_err(|_| StatusCode::UNAUTHORIZED)?
         .trim_start_matches("Bearer ");
-
-    println!("{}", token);
 
     let decrypted = match state.decrypt_token(&token) {
         Ok(claims) => claims,

@@ -1,5 +1,5 @@
 use crate::postgres::AppState;
-use axum::{http::StatusCode, routing::get, Json, Router};
+use axum::{http::StatusCode, routing::post, Json, Router};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -41,5 +41,5 @@ async fn handle_round(
 }
 
 pub(crate) fn routes() -> Router<AppState> {
-    Router::new().route("/round", get(handle_round))
+    Router::new().route("/round", post(handle_round))
 }

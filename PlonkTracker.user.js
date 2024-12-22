@@ -16,7 +16,7 @@
 // @copyright    2024, Hinson Chan (https://github.com/flatypus)
 // ==/UserScript==
 
-const VERSION = 0.22;
+const VERSION = 0.23;
 console.log(`<<< Plonk Tracker v${VERSION}, by Hinson Chan >>>`);
 
 const REFRESH = 1000 * 60 * 30;
@@ -54,6 +54,7 @@ const authFetch = async ({ access_token, path, method, body }) => {
   return fetch(`${BACKEND_URL}/${path}`, {
     headers: {
       Authorization: `Bearer ${at}`,
+      "Content-Type": "application/json",
     },
     method: method ?? "GET",
     body: JSON.stringify(body),

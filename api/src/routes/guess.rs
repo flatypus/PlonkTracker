@@ -1,11 +1,11 @@
 use crate::postgres::AppState;
-use axum::{http::StatusCode, routing::get, Json, Router};
+use axum::{http::StatusCode, routing::post, Json, Router};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Game {
-    distance: i32,
+    distance: f32,
     guess_country: String,
     guess_lat: f32,
     guess_lng: f32,
@@ -22,5 +22,5 @@ async fn handle_game(
 }
 
 pub(crate) fn routes() -> Router<AppState> {
-    Router::new().route("/guess", get(handle_game))
+    Router::new().route("/guess", post(handle_game))
 }

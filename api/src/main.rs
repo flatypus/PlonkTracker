@@ -25,15 +25,29 @@ async fn main() {
 
     println!("Connected to database");
 
+    let origins = [
+        "http://localhost:5173",
+        "https://geoguessr.com",
+        "https://www.geoguessr.com",
+        "https://plonk.flatypus.me",
+        "https://plonktracker.vercel.app",
+        "https://www.plonktracker.vercel.app",
+    ]
+    .iter()
+    .map(|&origin| origin.parse().unwrap())
+    .collect::<Vec<_>>();
+
     let cors = CorsLayer::new()
-        .allow_headers(Any)
         .allow_methods([Method::GET, Method::POST])
-        .allow_origin(Any);
+        .allow_headers(Any)
+        .allow_origin(origins);
 
     let state = AppState::new(pool, jwt_secret);
 
     let secure_router = Router::new()
         .merge(routes::verify::routes())
+        .merge(routes::round::routes())
+        .merge(routes::guess::routes())
         .with_state(state.clone())
         .route_layer(middleware::from_fn_with_state(
             state.clone(),
@@ -42,10 +56,6 @@ async fn main() {
 
     let app = Router::new()
         .merge(secure_router)
-        .merge(routes::round::routes())
-        .with_state(state.clone())
-        .merge(routes::guess::routes())
-        .with_state(state.clone())
         .merge(routes::root::routes())
         .merge(routes::health::routes())
         .layer(cors);
