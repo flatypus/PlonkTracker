@@ -25,18 +25,6 @@ async fn main() {
 
     println!("Connected to database");
 
-    // let origins = [
-    //     "http://localhost:5173",
-    //     "https://geoguessr.com",
-    //     "https://www.geoguessr.com",
-    //     "https://plonk.flatypus.me",
-    //     "https://www.plonktracker.vercel.app",
-    //     "https://plonktracker.vercel.app",
-    // ]
-    // .iter()
-    // .map(|&origin| origin.parse().unwrap())
-    // .collect::<Vec<_>>();
-
     let cors = CorsLayer::new()
         .allow_headers(Any)
         .allow_methods([Method::GET, Method::POST])
@@ -53,9 +41,13 @@ async fn main() {
         ));
 
     let app = Router::new()
+        .merge(secure_router)
+        .merge(routes::round::routes())
+        .with_state(state.clone())
+        .merge(routes::guess::routes())
+        .with_state(state.clone())
         .merge(routes::root::routes())
         .merge(routes::health::routes())
-        .merge(secure_router)
         .layer(cors);
 
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", PORT))
