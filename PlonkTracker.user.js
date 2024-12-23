@@ -290,6 +290,12 @@ const geoguessrSetup = async () => {
       const { current_game_id, current_round, map } = event.detail;
       const { id: map_id, name: map_name } = map;
       const request = await getGameInfo(current_game_id);
+
+      if (!request.ok) {
+        console.error('Failed to fetch game info:', request.statusText);
+        return;
+      }
+
       const game_info = await request.json();
 
       const {
@@ -309,7 +315,7 @@ const geoguessrSetup = async () => {
       const country_code = await getCountryCode([lat, lng]);
 
       const { countryCode, id, isVerified, nick, pin } = player;
-      const { pin_url } = pin;
+      const { url: pin_id } = pin;
 
       const view_limitation = forbidMoving
         ? forbidRotating && forbidZooming
@@ -334,7 +340,7 @@ const geoguessrSetup = async () => {
         player: {
           player_id: id,
           name: nick,
-          pin_url: pin_url,
+          pin_id: pin_id,
           country: countryCode,
           verified: isVerified,
         },
@@ -351,6 +357,25 @@ const geoguessrSetup = async () => {
       const { lat: guess_lat, lng: guess_lng } = player_guess;
       const guessCountryCode = await getCountryCode([guess_lat, guess_lng]);
 
+      const request = await getGameInfo(current_game_id);
+
+      if (!request.ok) {
+        console.error('Failed to fetch game info:', request.statusText);
+        return;
+      }
+
+      const game_info = await request.json();
+
+      const {
+        forbidMoving,
+        forbidRotating,
+        forbidZooming,
+        mode,
+        r,
+        player,
+        timeLimit,
+      } = game_info;
+
       await post_guess({
         game_id: current_game_id,
         guess_lat: guess_lat,
@@ -359,6 +384,7 @@ const geoguessrSetup = async () => {
         round_num: current_round,
         time_spent: time,
         distance: km,
+        game_mode: mode,
         score: score.amount,
       });
     });

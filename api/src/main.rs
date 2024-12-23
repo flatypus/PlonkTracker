@@ -5,6 +5,7 @@ mod routes;
 use crate::postgres::AppState;
 use axum::middleware::{self};
 use axum::{http::Method, Router};
+use routes::globals::get_db_url;
 use sqlx::postgres::PgPoolOptions;
 use tower_http::cors::{Any, CorsLayer};
 
@@ -15,11 +16,10 @@ async fn main() {
     dotenvy::dotenv().ok();
 
     let jwt_secret = std::env::var("JWT_SECRET").expect("JWT_SECRET must be set");
-    let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
     println!("Connecting to database...");
     let pool = PgPoolOptions::new()
-        .connect(&db_url)
+        .connect(&get_db_url())
         .await
         .expect("Failed to create pool");
 
