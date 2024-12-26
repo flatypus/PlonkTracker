@@ -4,40 +4,42 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::postgres::PgPoolOptions;
 
+use crate::get_db_url;
+
 #[derive(Debug, Deserialize, Serialize, sqlx::Type)]
-#[sqlx(type_name = "GAME_MODES", rename_all = "lowercase")]
+#[sqlx(type_name = "GAME_MODES", rename_all = "UPPERCASE")]
 enum GameModes {
     Practice,
     Duel,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 struct Game {
     distance: f32,
     game_id: String,
     guess_country: String,
     guess_lat: f32,
     guess_lng: f32,
-    round_num: u8,
-    score: u32,
-    time_spend: i32,
+    round_num: i32,
+    score: i16,
+    time_spent: i32,
     game_mode: String,
 }
 
 async fn handle_game(
     Json(game_info): Json<Game>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
-    println!("Received Round: {:?}", game_info);
+    println!("Received Guess: {:?}", game_info.game_id);
     println!("Game Stats:");
     println!("Distance: {}", game_info.distance);
     println!("Guess Country: {}", game_info.guess_country);
+    println!("Time Spent: {}", game_info.time_spent);
     println!("Guess Latitude: {}", game_info.guess_lat);
     println!("Guess Longitude: {}", game_info.guess_lng);
-
-    let db_url: String = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    println!("Game Mode: {}", game_info.game_mode);
 
     let pool = PgPoolOptions::new()
-        .connect(&db_url)
+        .connect(&get_db_url())
         .await
         .expect("Failed to create pool");
 
@@ -45,11 +47,12 @@ async fn handle_game(
         "standard" => GameModes::Practice,
         _ => GameModes::Duel,
     };
+    println!("Game Mode: {:?}", gm);
 
     let result = sqlx::query!(
         r#"
-        INSERT INTO guesses (game_id, round_num, distance, guess_country, guess_lat, guess_lng, score, time_spent, game_mode)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        INSERT INTO guesses (game_id, round_num, distance, guess_country, guess_lat, guess_lng, score, time_spent)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         ON CONFLICT (game_id) DO UPDATE
         SET round_num = EXCLUDED.round_num,
             distance = EXCLUDED.distance,
@@ -57,18 +60,16 @@ async fn handle_game(
             guess_lat = EXCLUDED.guess_lat,
             guess_lng = EXCLUDED.guess_lng,
             score = EXCLUDED.score,
-            time_spent = EXCLUDED.time_spent,
-            game_mode = EXCLUDED.game_mode
+            time_spent = EXCLUDED.time_spent
         "#,
         game_info.game_id,
-        game_info.round_num as i16,
+        game_info.round_num as i32,
         game_info.distance as f64,
         game_info.guess_country,
         game_info.guess_lat as f64,
         game_info.guess_lng as f64,
-        game_info.score as i64,
-        game_info.time_spend as i64,
-        gm as GameModes
+        game_info.score as i32,
+        game_info.time_spent as i64
     )
     .execute(&pool)
     .await;
