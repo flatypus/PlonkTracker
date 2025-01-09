@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-axum = "0.7.9"
+axum = "0.8.1"
 chrono = "0.4.39"
 dotenvy = "0.15.7"
 jsonwebtoken = "9.3.0"
@@ -14,4 +14,5 @@ sqlx = { version = "0.8.2", features = ["bigdecimal", "postgres", "runtime-tokio
 tokio = { version = "1.42.0", features = ["macros", "rt-multi-thread"] }
 tower-http = { version = "0.6.2", features = ["cors"] }
 tower = "0.5.2"
-uuid = "1.10.0"
+bigdecimal = { version = "0.4.7", features = ["serde"] }
+uuid = { version = "1.2", features = ["v4", "v5"] }

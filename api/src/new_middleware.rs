@@ -42,6 +42,9 @@ pub async fn auth(
 
     println!("User {} verified", user_id);
 
+    let mut request = request;
+    request.extensions_mut().insert(user_id);
+
     // Continue to the next middleware or handler
     Ok(next.run(request).await)
 }
