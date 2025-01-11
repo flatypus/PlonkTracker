@@ -11,8 +11,8 @@ use crate::get_db_url;
 #[derive(Serialize, Deserialize, Debug, sqlx::Type)]
 #[sqlx(type_name = "game_modes", rename_all = "UPPERCASE")]
 pub enum GameModes {
-    practice,
-    duel,
+    Practice,
+    Duel,
 }
 
 #[derive(Debug, Deserialize, Serialize, sqlx::Type)]
@@ -99,8 +99,8 @@ async fn handle_round(
     .await;
 
     let gm = match post_round.round.game_mode.as_str() {
-        "practice" => GameModes::practice,
-        _ => GameModes::duel,
+        "practice" => GameModes::Practice,
+        _ => GameModes::Duel,
     };
 
     let vl = match post_round.round.view_limitation.as_str() {

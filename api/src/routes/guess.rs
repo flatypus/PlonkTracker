@@ -63,9 +63,10 @@ async fn handle_game(
             guess_lat, 
             guess_lng, 
             score, 
-            time_spent
+            time_spent,
+            guess_made
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true)
         ON CONFLICT (game_id, round_num) DO UPDATE 
         SET
             distance = EXCLUDED.distance,
