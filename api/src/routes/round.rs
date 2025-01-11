@@ -3,10 +3,8 @@ use axum::{extract::State, http::StatusCode, routing::post, Json, Router};
 use bigdecimal::BigDecimal;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use sqlx::postgres::PgPoolOptions;
 use uuid::Uuid;
-
-use crate::get_db_url;
+use axum::extract::Extension;
 
 #[derive(Serialize, Deserialize, Debug, sqlx::Type)]
 #[sqlx(type_name = "game_modes", rename_all = "UPPERCASE")]
@@ -53,18 +51,11 @@ struct PostRoundRequest {
     player: Player,
 }
 
-use axum::extract::Extension;
-
 async fn handle_round(
     State(state): State<AppState>,
     Extension(user_id): Extension<String>,
     Json(post_round): Json<PostRoundRequest>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
-    println!("Received Round: {:?}", post_round.player.player_id);
-    println!(
-        "Round Stats: game_id: {}, round_num: {}, map_name: {}",
-        post_round.round.game_id, post_round.round.round_num, post_round.round.map_name
-    );
 
     if post_round.round.game_id.is_empty() || post_round.player.name.is_empty() {
         return Err((
@@ -75,19 +66,24 @@ async fn handle_round(
 
     let player_result = sqlx::query!(
         r#"
-        INSERT INTO players (player_id, name, country, verified, pin)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO players (player_id, name, country, verified, pin, user_id)
+        VALUES ($1, $2, $3, $4, $5, $6)
         ON CONFLICT (player_id) DO UPDATE
         SET name = EXCLUDED.name,
             country = EXCLUDED.country,
             verified = EXCLUDED.verified,
-            pin = EXCLUDED.pin
+            pin = EXCLUDED.pin,
+            user_id = EXCLUDED.user_id
         "#,
         post_round.player.player_id,
         post_round.player.name,
         post_round.player.country,
         post_round.player.verified,
-        post_round.player.pin_id
+        post_round.player.pin_id,
+        Uuid::parse_str(&user_id).map_err(|_| (
+            StatusCode::BAD_REQUEST,
+            Json(json!({ "error": "Invalid user_id" }))
+        ))?
     )
     .execute(&state.pool)
     .await;

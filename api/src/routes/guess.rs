@@ -2,16 +2,6 @@ use crate::postgres::AppState;
 use axum::{extract::State, http::StatusCode, routing::post, Json, Router};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use sqlx::postgres::PgPoolOptions;
-
-use crate::get_db_url;
-
-#[derive(Debug, Deserialize, Serialize, sqlx::Type)]
-#[sqlx(type_name = "GAME_MODES", rename_all = "lowercase")]
-enum GameModes {
-    Practice,
-    Duel,
-}
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Game {
@@ -26,22 +16,10 @@ struct Game {
     distance: f32,
 }
 
-// TODO: Upsert the guess information within this file. Insert it in round.rs.
-// TODO: Add state to both guess.rs and round.rs such that they can use the shared pool
-
 async fn handle_game(
     State(state): State<AppState>,
     Json(game_info): Json<Game>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
-    println!("Received Guess: {:?}", game_info.game_id);
-    println!("Game Stats:");
-    println!("Distance: {}", game_info.distance);
-    println!("Guess Country: {}", game_info.guess_country);
-    println!("Time Spent: {}", game_info.time_spent);
-    println!("Guess Latitude: {}", game_info.guess_lat);
-    println!("Guess Longitude: {}", game_info.guess_lng);
-    println!("Game Mode: {}", game_info.game_mode);
-    println!("Round number: {}", game_info.round_num);
 
     let result = sqlx::query!(
         r#"
