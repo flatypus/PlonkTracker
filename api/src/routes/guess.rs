@@ -30,6 +30,7 @@ struct Game {
 // TODO: Add state to both guess.rs and round.rs such that they can use the shared pool
 
 async fn handle_game(
+    State(state): State<AppState>,
     Json(game_info): Json<Game>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
     println!("Received Guess: {:?}", game_info.game_id);
@@ -41,17 +42,6 @@ async fn handle_game(
     println!("Guess Longitude: {}", game_info.guess_lng);
     println!("Game Mode: {}", game_info.game_mode);
     println!("Round number: {}", game_info.round_num);
-
-    let pool = PgPoolOptions::new()
-        .connect(&get_db_url())
-        .await
-        .expect("Failed to create pool");
-
-    let gm = match game_info.game_mode.as_str() {
-        "standard" => GameModes::Practice,
-        _ => GameModes::Duel,
-    };
-    println!("Game Mode: {:?}", gm);
 
     let result = sqlx::query!(
         r#"
@@ -85,7 +75,7 @@ async fn handle_game(
         game_info.score as i32,
         game_info.time_spent
     )
-    .execute(&pool)
+    .execute(&state.pool)
     .await;
 
     match result {

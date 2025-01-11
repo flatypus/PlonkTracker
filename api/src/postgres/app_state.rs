@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 #[derive(Clone)]
 pub(crate) struct AppState {
-    pool: PgPool,
+    pub pool: PgPool,
     jwt_secret: String,
 }
 

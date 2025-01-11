@@ -1,5 +1,5 @@
 use crate::postgres::AppState;
-use axum::{http::StatusCode, routing::post, Json, Router};
+use axum::{extract::State, http::StatusCode, routing::post, Json, Router};
 use bigdecimal::BigDecimal;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -53,11 +53,10 @@ struct PostRoundRequest {
     player: Player,
 }
 
-// TODO: Insert actual data within handle_round.
-
 use axum::extract::Extension;
 
 async fn handle_round(
+    State(state): State<AppState>,
     Extension(user_id): Extension<String>,
     Json(post_round): Json<PostRoundRequest>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
@@ -73,11 +72,6 @@ async fn handle_round(
             Json(json!({ "error": "Missing required fields" })),
         ));
     }
-
-    let pool = PgPoolOptions::new()
-        .connect(&get_db_url())
-        .await
-        .expect("Failed to create pool");
 
     let player_result = sqlx::query!(
         r#"
@@ -95,7 +89,7 @@ async fn handle_round(
         post_round.player.verified,
         post_round.player.pin_id
     )
-    .execute(&pool)
+    .execute(&state.pool)
     .await;
 
     let gm = match post_round.round.game_mode.as_str() {
@@ -156,7 +150,7 @@ async fn handle_round(
         gm as GameModes,
         vl as ViewLimitation
     )
-    .execute(&pool)
+    .execute(&state.pool)
     .await;
 
     match (player_result, round_result) {
