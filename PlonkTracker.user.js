@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Geoguessr Plonk Tracker
-// @namespace    https://flatypus.me, https://github.com/flatypus/PlonkTracker
+// @namespace    https://plonk.flatypus.me
 // @version      2025-01-11
 // @description  Tracks your guesses on Geoguessr to identify hotspots and blindspots
 // @author       Hinson Chan
@@ -13,6 +13,8 @@
 // @run-at       document-start
 // @require      https://miraclewhips.dev/geoguessr-event-framework/geoguessr-event-framework.min.js?v=10
 // @require      https://raw.githubusercontent.com/flatypus/PlonkTracker/refs/heads/master/lib.js
+// @downloadURL  https://github.com/flatypus/PlonkTracker/blob/master/PlonkTracker.user.js
+// @updateURL    https://github.com/flatypus/PlonkTracker/blob/master/PlonkTracker.user.js
 // @copyright    2025, Hinson Chan (https://github.com/flatypus)
 // ==/UserScript==
 
@@ -260,7 +262,7 @@ const geoguessrSetup = async () => {
       text.innerText = "PlonkTracker is tracking!";
       text.style.color = "#00ff00";
       banner.classList.add("plonk-banner");
-      setTimeout(() => document.body.removeChild(banner), 3000);
+      setTimeout(() => document.body.removeChild(banner), 1500);
       banner.appendChild(text);
     }
 
@@ -366,15 +368,7 @@ const geoguessrSetup = async () => {
 
       const game_info = await request.json();
 
-      const {
-        forbidMoving,
-        forbidRotating,
-        forbidZooming,
-        mode,
-        r,
-        player,
-        timeLimit,
-      } = game_info;
+      const { mode } = game_info;
 
       await post_guess({
         game_id: current_game_id,

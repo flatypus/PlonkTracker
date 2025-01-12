@@ -8,7 +8,8 @@
 			const { data, error } = await supabase.auth.signInWithOAuth({
 				provider: 'discord',
 				options: {
-					redirectTo: import.meta.env?.VITE_VERCEL_PROJECT_PRODUCTION_URL ?? 'http://localhost:5173/'
+					redirectTo:
+						import.meta.env?.VITE_VERCEL_PROJECT_PRODUCTION_URL ?? 'http://localhost:5173/'
 				}
 			});
 
@@ -29,6 +30,12 @@
 	<h2 class="text-lg">
 		Please sign in; I'm storing thousands of data points for people with multiple devices, and I
 		hope this is the simplest way I can help you keep track of it all.
+
+		<b>
+			<a href="https://github.com/flatypus/PlonkTracker/blob/master/PlonkTracker.user.js">
+				Install the script here:
+			</a>
+		</b>
 	</h2>
 	<h2 class="text-base text-slate-300">
 		If you have suggestions for other sign-in methods, or other features in general, let me know at

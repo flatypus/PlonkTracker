@@ -19,6 +19,11 @@
 
 <div class="flex w-1/2 min-w-[600px] flex-col gap-6 text-white">
 	<h1 class="text-3xl">Welcome to PlonkTracker!</h1>
+	<b>
+		<a href="https://github.com/flatypus/PlonkTracker/blob/master/PlonkTracker.user.js">
+			Install the script here:
+		</a>
+	</b>
 	<h2 class="text-base text-slate-300">
 		If you have suggestions for other sign-in methods, or other features in general, let me know at
 		hinson (at) stanford (dot) edu
