@@ -32,8 +32,8 @@
 		hope this is the simplest way I can help you keep track of it all.
 
 		<b>
-			<a href="https://github.com/flatypus/PlonkTracker/blob/master/PlonkTracker.user.js">
-				Install the script here:
+			<a href="https://github.com/flatypus/PlonkTracker/blob/master/PlonkTracker.user.js" class="text-blue-400 underline">
+				Click to install the script!
 			</a>
 		</b>
 	</h2>
