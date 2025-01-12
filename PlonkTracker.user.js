@@ -13,8 +13,8 @@
 // @run-at       document-start
 // @require      https://miraclewhips.dev/geoguessr-event-framework/geoguessr-event-framework.min.js?v=10
 // @require      https://raw.githubusercontent.com/flatypus/PlonkTracker/refs/heads/master/lib.js
-// @downloadURL  https://github.com/flatypus/PlonkTracker/blob/master/PlonkTracker.user.js
-// @updateURL    https://github.com/flatypus/PlonkTracker/blob/master/PlonkTracker.user.js
+// @downloadURL  https://github.com/flatypus/PlonkTracker/raw/refs/heads/master/PlonkTracker.user.js
+// @updateURL    https://github.com/flatypus/PlonkTracker/raw/refs/heads/master/PlonkTracker.user.js
 // @copyright    2025, Hinson Chan (https://github.com/flatypus)
 // ==/UserScript==
 

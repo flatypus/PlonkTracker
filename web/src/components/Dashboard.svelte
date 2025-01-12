@@ -20,7 +20,7 @@
 <div class="flex w-1/2 min-w-[600px] flex-col gap-6 text-white">
 	<h1 class="text-3xl">Welcome to PlonkTracker!</h1>
 	<b>
-		<a href="https://github.com/flatypus/PlonkTracker/blob/master/PlonkTracker.user.js" class="text-blue-400 underline">
+		<a href="https://github.com/flatypus/PlonkTracker/raw/refs/heads/master/PlonkTracker.user.js" class="text-blue-400 underline">
 			Click to install the script!
 		</a>
 	</b>

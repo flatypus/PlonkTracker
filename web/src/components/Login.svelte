@@ -32,7 +32,7 @@
 		hope this is the simplest way I can help you keep track of it all.
 
 		<b>
-			<a href="https://github.com/flatypus/PlonkTracker/blob/master/PlonkTracker.user.js" class="text-blue-400 underline">
+			<a href="https://github.com/flatypus/PlonkTracker/raw/refs/heads/master/PlonkTracker.user.js" class="text-blue-400 underline">
 				Click to install the script!
 			</a>
 		</b>
