@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Geoguessr Plonk Tracker
 // @namespace    https://flatypus.me, https://github.com/flatypus/PlonkTracker
-// @version      2024-12-16
+// @version      2025-01-11
 // @description  Tracks your guesses on Geoguessr to identify hotspots and blindspots
 // @author       Hinson Chan
 // @match        *://*.geoguessr.com/*
@@ -13,7 +13,7 @@
 // @run-at       document-start
 // @require      https://miraclewhips.dev/geoguessr-event-framework/geoguessr-event-framework.min.js?v=10
 // @require      https://raw.githubusercontent.com/flatypus/PlonkTracker/refs/heads/master/lib.js
-// @copyright    2024, Hinson Chan (https://github.com/flatypus)
+// @copyright    2025, Hinson Chan (https://github.com/flatypus)
 // ==/UserScript==
 
 const VERSION = 1.0;
