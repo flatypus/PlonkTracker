@@ -18,7 +18,7 @@
 // @copyright    2025, Hinson Chan (https://github.com/flatypus)
 // ==/UserScript==
 
-const VERSION = 1.0;
+const VERSION = 1.01;
 console.log(`<<< Plonk Tracker v${VERSION}, by Hinson Chan >>>`);
 
 const REFRESH = 1000 * 60 * 30;
@@ -219,7 +219,7 @@ const geoguessrSetup = async () => {
     const style = document.createElement("style");
     style.innerHTML = `
       .plonk-banner { 
-        animation: fadeOut 3s forwards; 
+        animation: fadeOut 2s forwards; 
       } 
       @keyframes fadeOut {
         0% { opacity: 1; }
@@ -262,7 +262,10 @@ const geoguessrSetup = async () => {
       text.innerText = "PlonkTracker is tracking!";
       text.style.color = "#00ff00";
       banner.classList.add("plonk-banner");
-      setTimeout(() => document.body.removeChild(banner), 1500);
+      setTimeout(() => document.body.removeChild(banner), 3000);
+      setTimeout(() => {
+        banner.onclick = () => {};
+      }, 1500);
       banner.appendChild(text);
     }
 
