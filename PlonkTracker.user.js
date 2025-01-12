@@ -16,7 +16,7 @@
 // @copyright    2024, Hinson Chan (https://github.com/flatypus)
 // ==/UserScript==
 
-const VERSION = 0.23;
+const VERSION = 1.0;
 console.log(`<<< Plonk Tracker v${VERSION}, by Hinson Chan >>>`);
 
 const REFRESH = 1000 * 60 * 30;
@@ -292,7 +292,7 @@ const geoguessrSetup = async () => {
       const request = await getGameInfo(current_game_id);
 
       if (!request.ok) {
-        console.error('Failed to fetch game info:', request.statusText);
+        console.error("Failed to fetch game info:", request.statusText);
         return;
       }
 
@@ -360,7 +360,7 @@ const geoguessrSetup = async () => {
       const request = await getGameInfo(current_game_id);
 
       if (!request.ok) {
-        console.error('Failed to fetch game info:', request.statusText);
+        console.error("Failed to fetch game info:", request.statusText);
         return;
       }
 
