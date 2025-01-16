@@ -1,10 +1,10 @@
 use crate::postgres::AppState;
+use axum::extract::Extension;
 use axum::{extract::State, http::StatusCode, routing::post, Json, Router};
 use bigdecimal::BigDecimal;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use uuid::Uuid;
-use axum::extract::Extension;
 
 #[derive(Serialize, Deserialize, Debug, sqlx::Type)]
 #[sqlx(type_name = "game_modes", rename_all = "UPPERCASE")]
@@ -56,6 +56,7 @@ async fn handle_round(
     Extension(user_id): Extension<String>,
     Json(post_round): Json<PostRoundRequest>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
+    println!("Received round result: {:?}", post_round);
 
     if post_round.round.game_id.is_empty() || post_round.player.name.is_empty() {
         return Err((

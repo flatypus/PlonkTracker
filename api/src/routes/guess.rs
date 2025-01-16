@@ -16,10 +16,11 @@ struct Game {
     distance: f32,
 }
 
-async fn handle_game(
+async fn handle_guess(
     State(state): State<AppState>,
     Json(game_info): Json<Game>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
+    println!("Received guess: {:?}", game_info);
 
     let result = sqlx::query!(
         r#"
@@ -74,5 +75,5 @@ async fn handle_game(
 }
 
 pub(crate) fn routes() -> Router<AppState> {
-    Router::new().route("/guess", post(handle_game))
+    Router::new().route("/guess", post(handle_guess))
 }
