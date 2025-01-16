@@ -18,13 +18,12 @@
 // @copyright    2025, Hinson Chan (https://github.com/flatypus)
 // ==/UserScript==
 
-const VERSION = 1.01;
+const VERSION = 1.02;
 console.log(`<<< Plonk Tracker v${VERSION}, by Hinson Chan >>>`);
 
 const REFRESH = 1000 * 60 * 30;
 const SUPABASE_URL = "https://pgqxivpgjzkikcxldpjv.supabase.co";
-// const BACKEND_URL = "https://api.plonk.flatypus.me";
-const BACKEND_URL = "http://localhost:4000";
+const BACKEND_URL = "https://api.plonk.flatypus.me";
 const SCRIPT_UPDATE_URL = "https://github.com/flatypus/PlonkTracker"; // update this l8r
 
 // Wait for a condition to be true before executing the callback function
