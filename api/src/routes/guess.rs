@@ -12,7 +12,6 @@ struct Game {
     guess_lng: f32,
     score: i16,
     time_spent: i64,
-    game_mode: String,
     distance: f32,
 }
 
@@ -24,26 +23,16 @@ async fn handle_guess(
 
     let result = sqlx::query!(
         r#"
-        INSERT INTO guesses (
-            game_id, 
-            round_num, 
-            distance, 
-            guess_country, 
-            guess_lat, 
-            guess_lng, 
-            score, 
-            time_spent,
-            guess_made
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true)
-        ON CONFLICT (game_id, round_num) DO UPDATE 
+        UPDATE guesses
         SET
-            distance = EXCLUDED.distance,
-            guess_country = EXCLUDED.guess_country,
-            guess_lat = EXCLUDED.guess_lat,
-            guess_lng = EXCLUDED.guess_lng,
-            score = EXCLUDED.score,
-            time_spent = EXCLUDED.time_spent
+            distance = $3,
+            guess_country = $4,
+            guess_lat = $5,
+            guess_lng = $6,
+            score = $7,
+            time_spent = $8,
+            guess_made = true
+        WHERE game_id = $1 AND round_num = $2
         "#,
         game_info.game_id,
         game_info.round_num,

@@ -362,17 +362,6 @@ const geoguessrSetup = async () => {
       const { lat: guess_lat, lng: guess_lng } = player_guess;
       const guessCountryCode = await getCountryCode([guess_lat, guess_lng]);
 
-      const request = await getGameInfo(current_game_id);
-
-      if (!request.ok) {
-        console.error("Failed to fetch game info:", request.statusText);
-        return;
-      }
-
-      const game_info = await request.json();
-
-      const { mode } = game_info;
-
       await post_guess({
         game_id: current_game_id,
         guess_lat: guess_lat,
@@ -381,7 +370,6 @@ const geoguessrSetup = async () => {
         round_num: current_round,
         time_spent: time,
         distance: km,
-        game_mode: mode,
         score: score.amount,
       });
     });
