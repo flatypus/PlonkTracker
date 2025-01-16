@@ -24,7 +24,8 @@ console.log(`<<< Plonk Tracker v${VERSION}, by Hinson Chan >>>`);
 const REFRESH = 1000 * 60 * 30;
 const SUPABASE_URL = "https://pgqxivpgjzkikcxldpjv.supabase.co";
 const BACKEND_URL = "https://api.plonk.flatypus.me";
-const SCRIPT_UPDATE_URL = "https://github.com/flatypus/PlonkTracker"; // update this l8r
+const SCRIPT_UPDATE_URL =
+  "https://github.com/flatypus/PlonkTracker/raw/refs/heads/master/PlonkTracker.user.js"; // update this l8r
 
 // Wait for a condition to be true before executing the callback function
 const waitUntilLoaded = async (fn, callback) => {
