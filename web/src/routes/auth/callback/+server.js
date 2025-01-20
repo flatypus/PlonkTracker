@@ -1,6 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 
-export const GET = async (event) => {
+export const GET = async (/** @type {{ url: any; locals: { supabase: any; }; }} */ event) => {
 	const {
 		url,
 		// @ts-expect-error -- /shrug
