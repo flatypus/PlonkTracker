@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import * as mapboxgl from 'mapbox-gl';
+	import { createClient } from '@supabase/supabase-js';
 
-  const mapboxToken = import.meta.env.VITE_MAPBOX_KEY;
+	const mapboxToken = import.meta.env.VITE_MAPBOX_KEY;
+	const supabaseKey = import.meta.env.VITE_JWT_SECRET;
+	const supabaseUrl = import.meta.env.VITE_DATABASE_URL;
 
 	let mapContainer: HTMLElement;
 
@@ -73,31 +76,34 @@
 	<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
 	<link href="https://api.mapbox.com/mapbox-gl-js/v3.9.3/mapbox-gl.css" rel="stylesheet" />
 	<script src="https://api.mapbox.com/mapbox-gl-js/v3.9.3/mapbox-gl.js"></script>
-	<style>
-		body {
-			margin: 0;
-			padding: 0;
-		}
-		#map {
-			position: absolute;
-			top: 0;
-			bottom: 0;
-			width: 100%;
-		}
-	</style>
 </svelte:head>
 
-<div bind:this={mapContainer} id="map"></div>
+<div class="container">
+	<div bind:this={mapContainer} id="map" class="h-screen w-screen"></div>
+	<div class="side-panel justify-center rounded-xl text-center">
+		<h2 class="text-slate-200">Side Panel</h2>
+	</div>
+</div>
 
 <style>
-	body {
-		margin: 0;
-		padding: 0;
+	.container {
+		position: relative;
+		width: 100vw;
+		height: 100vh;
 	}
-	#map {
+	.side-panel {
 		position: absolute;
 		top: 0;
-		bottom: 0;
+		left: 0;
+		width: 300px;
+		height: 100vh;
+		background-color: rgba(0, 0, 0, 0.8);
+		padding: 16px;
+		overflow-y: auto;
+		z-index: 2;
+	}
+	#map {
 		width: 100%;
+		height: 100%;
 	}
 </style>
