@@ -77,7 +77,6 @@
 	<link href="https://api.mapbox.com/mapbox-gl-js/v3.9.3/mapbox-gl.css" rel="stylesheet" />
 	<script src="https://api.mapbox.com/mapbox-gl-js/v3.9.3/mapbox-gl.js"></script>
 </svelte:head>
-
 <div class="container">
 	<div bind:this={mapContainer} id="map" class="h-screen w-screen"></div>
 	<div class="side-panel justify-center rounded-xl text-center">
@@ -91,8 +90,9 @@
 		width: 100vw;
 		height: 100vh;
 	}
+
 	.side-panel {
-		position: absolute;
+		position: relative;
 		top: 0;
 		left: 0;
 		width: 300px;
@@ -100,10 +100,16 @@
 		background-color: rgba(0, 0, 0, 0.8);
 		padding: 16px;
 		overflow-y: auto;
-		z-index: 2;
+		z-index: 2; /* Ensures it's above the map */
 	}
+
 	#map {
-		width: 100%;
-		height: 100%;
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+		z-index: 1; /* Ensures the map is below the side-panel */
 	}
+
 </style>
