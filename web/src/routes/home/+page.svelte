@@ -1,13 +1,28 @@
 <script lang="ts">
+
+	type Guesses = {
+		game_id: string;
+		game_mode: string;
+		guess_lat: number;
+		guess_lng: number;
+		actual_lat: number;
+		actual_lng: number;
+		guess_country: string;
+		actual_country: string;
+		view_limitation: string;
+		time_allowed: number;
+		map_name: string;
+	}
+
 	import { onMount } from 'svelte';
 	import * as mapboxgl from 'mapbox-gl';
-	import { createClient } from '@supabase/supabase-js';
 
 	const mapboxToken = import.meta.env.VITE_MAPBOX_KEY;
-	const supabaseKey = import.meta.env.VITE_JWT_SECRET;
-	const supabaseUrl = import.meta.env.VITE_DATABASE_URL;
 
 	let mapContainer: HTMLElement;
+	export let data: Guesses[];
+
+	console.log("Data: ", data);
 
 	onMount(() => {
 		if (!mapboxToken) {
@@ -75,12 +90,20 @@
 <svelte:head>
 	<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
 	<link href="https://api.mapbox.com/mapbox-gl-js/v3.9.3/mapbox-gl.css" rel="stylesheet" />
-	<script src="https://api.mapbox.com/mapbox-gl-js/v3.9.3/mapbox-gl.js"></script>
 </svelte:head>
 <div class="container">
 	<div bind:this={mapContainer} id="map" class="h-screen w-screen"></div>
 	<div class="side-panel justify-center rounded-xl text-center">
 		<h2 class="text-slate-200">Side Panel</h2>
+		<div>
+			{#if data && data.length}
+				{#each data as row}
+					<p class = "text-slate-100">{row.actual_country}</p>
+				{/each}
+			{:else}
+				<p class = "text-slate-100">No data available.</p>
+			{/if}
+		</div>
 	</div>
 </div>
 
